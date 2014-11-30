@@ -7,10 +7,12 @@ mkdir -p ~/Pictures/Bing/Archive
 cd ~/Pictures/Bing
 
 # today's image
-TODAY="$(date +%Y-%m-%d).jpg"
+URL=$(curl -s http://feeds.feedburner.com/bingimages | grep url | sed -e "s/.*url=\"\([^\"]*\).*/\1/" | head -1)
+URLSIG=$(md5 -q -s ${URL})
+TODAY="$(date +%Y-%m-%d)_${URLSIG}.jpg"
 
-# do we already have today's image?
-if [ -e ${TODAY} ]
+# exit if we already have today's image
+if [[ $(find . -type f -name "*${URLSIG}*") ]];
 then
     exit 0
 fi
@@ -18,8 +20,8 @@ fi
 # archive old images
 mv ./*.jpg Archive/
 
-# download latest file
-curl -s http://feeds.feedburner.com/bingimages | grep url | sed -e "s/.*url=\"\([^\"]*\).*/\1/" | head -1 | curl $(cat -) -s -o ${TODAY}
+# download latest image
+curl ${URL} -s -o ${TODAY}
 
 # the next time OS X changes the wallpaper it should find the the new file and update the wallpaper
 # assumes OS X is configured to rotate the wallpaper from ~/Pictures/Bing at some interval
