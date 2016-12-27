@@ -48,4 +48,4 @@ if r.status_code == 200:
 
 # The next time macOS changes the wallpaper it should find the the new file and update the wallpaper
 # assuming macOS is configured to rotate the wallpaper from /Users/username/Pictures/Bing at some interval
-# I run this script every 5 minutes and configure OS X to update the wallpaper every 15
+# I run this script every 5 minutes and configure macOS to update the wallpaper every 15
