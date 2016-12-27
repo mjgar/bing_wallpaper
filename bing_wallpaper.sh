@@ -8,7 +8,7 @@ cd ~/Pictures/Bing
 
 # today's image
 URL=$(curl -s http://feeds.feedburner.com/bingimages | grep url | sed -e "s/.*url=\"\([^\"]*\).*/\1/" | head -1)
-URLSIG=$(md5 -q -s ${URL})
+URLSIG=$(/sbin/md5 -q -s ${URL})
 TODAY="$(date +%Y-%m-%d)_${URLSIG}.jpg"
 
 # exit if we already have today's image
