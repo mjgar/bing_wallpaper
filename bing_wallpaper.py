@@ -24,21 +24,24 @@ for item in feed.channel:
     if 'Worldwide, %s' % today in str(item.title):
         image_url = item.find('content:encoded').a.get('href')
 
+# get files in root_dir
+root_dir_files = os.listdir(root_dir)
+
 # calculate md5 signature and confirm we don't already have this file downloaded
 url_sig = hashlib.md5(image_url).hexdigest()
-if any(url_sig in fn for fn in os.listdir(root_dir)):
+if any(url_sig in f for f in root_dir_files):
     sys.exit(0)
 
 # archive existing .jpg files
-for f in os.listdir(root_dir):
+for f in root_dir_files:
     if os.path.isfile(os.path.join(root_dir, f)) and os.path.splitext(f)[1] == '.jpg':
         os.rename(os.path.join(root_dir, f), os.path.join(root_dir, arch_dir, f))
 
 # download the file
-image_fn = os.path.join(root_dir, '%s_%s.jpg' % (today, url_sig))
+image_file = os.path.join(root_dir, '%s_%s.jpg' % (today, url_sig))
 r = requests.get(image_url, stream=True)
 if r.status_code == 200:
-    with open(image_fn, 'wb') as f:
+    with open(image_file, 'wb') as f:
         for chunk in r:
             f.write(chunk)
 
