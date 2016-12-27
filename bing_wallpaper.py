@@ -23,6 +23,7 @@ feed = bs4.BeautifulSoup(requests.get(feed_url).content, 'lxml')
 for item in feed.channel:
     if 'Worldwide, %s' % today in str(item.title):
         image_url = item.find('content:encoded').a.get('href')
+        break
 
 # get files in root_dir
 root_dir_files = os.listdir(root_dir)
