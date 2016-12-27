@@ -10,7 +10,7 @@ import bs4
 
 # define destination root directory
 root_dir = '/Users/username/Pictures/Bing'
-arch_dir = os.path.join(root_dir, "Archive")
+arch_dir = os.path.join(root_dir, 'Archive')
 today = str(datetime.date.today())
 
 # create our archive directory
