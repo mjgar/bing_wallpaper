@@ -25,4 +25,4 @@ More details
 
 The next time macOS changes the wallpaper it should find the the new file and update the wallpaper, assuming it is configured to rotate the wallpaper using the script's destination directory as the source. I run this script every 5 minutes and have macOS configured to rotate the wallpaper every 15.
 
-Also on my blog, _tbd_
+Also on my blog, http://www.blippy.net/2019/11/16/bing-wallpaper-on-a-mac-3-0/.
