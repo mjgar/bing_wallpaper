@@ -20,7 +20,7 @@ log = logging.getLogger()
 def main(dest: str):
     """
     @param: dest Destination for downloaded image
-    Find the URL of today's wallpaper, download it if the URL's md5sum doesn't exist.
+    Find the URL of today's image and download it we don't have it.
     Destination filename will be YYYY-mm-dd_{md5dum}.jpg
     """
     bing_url = 'https://bing.com'
@@ -37,19 +37,19 @@ def main(dest: str):
 
     img_cont = bs4.BeautifulSoup(
         r.content, 'html.parser').find_all('div', class_='img_cont')
-    if len(img_cont) < 0:
+    if not img_cont:
         log.error(f"Could not parse html from {bing_url}. Exiting.")
         return
     url = bing_url + re.search(r'\((.+)\)', str(img_cont)).group(1)
-    log.info(f"Image url parsed from html as {url}")
+    log.info(f"Found image url in html: {url}")
     md5sum = hashlib.md5(url.encode('utf-8')).hexdigest()
-    log.info(f"Hash of {url} calculated as {md5sum}")
+    log.info(f"Hash of image url: {md5sum}")
 
     # Stop if we have this checksum in dest
     existing_files = os.listdir(dest)
     log.debug(f"Existing files in {dest} are {existing_files}")
     if any(md5sum in f for f in existing_files):
-        log.info(f"Hash {md5sum} found in {dest}. Exiting.")
+        log.info(f"Found {md5sum} hash in {dest}. Exiting.")
         return
 
     # Build the filename
@@ -70,7 +70,7 @@ def main(dest: str):
         log.error(f"Could not download {url} to {image_fullname}")
         return
 
-    # Archive the existing file
+    # Archive the existing jpg files if archive directory exists
     if os.path.isdir(archive_dir):
         for f in existing_files:
             if f.endswith('.jpg'):
@@ -83,10 +83,15 @@ def main(dest: str):
 
 if __name__ == '__main__':
     """ Initialize a (very basic) argument parser with destination directory
-        and download the image there archiving any existing .jpgs to {dest}/Archive
+        and download the image, archiving any existing .jpgs to {dest}/Archive
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dest', type=str, required=True)
+    parser.add_argument(
+        '--dest',
+        help='destination directory',
+        type=str,
+        required=True
+    )
     args = parser.parse_args()
     if not os.path.isdir(args.dest):
         log.error(f"{args.dest} is not a directory. Exiting.")
