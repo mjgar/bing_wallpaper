@@ -18,7 +18,7 @@ pip install funcy requests beautifulsoup4
 ```
 
 ### Running
-We can now run the script from the conda environment or venv/python environment _eg._ `python bing.py --dest ~/Desktop`
+We can now run the script from the conda environment or venv/python environment _eg._ `python bing_wallpaper.py --dest ~/Desktop`
 
 More details
 ========
