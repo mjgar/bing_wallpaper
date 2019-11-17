@@ -6,7 +6,7 @@ Script to download current background from [https://bing.com](bing.com) to be us
 Running the script
 ==========
 
-## First we create our environment
+### Creating the environment
 Either with conda
 ```
 conda create -n bing -c defaults -c conda-forge python=3.7 requests beautifulsoup4 funcy
@@ -17,6 +17,7 @@ Or with pip
 pip install funcy requests beautifulsoup4
 ```
 
+### Running
 We can now run the script from the conda environment or venv/python environment _eg._ `python bing.py --dest ~/Desktop`
 
 More details
