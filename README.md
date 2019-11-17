@@ -1,7 +1,7 @@
-bing_wallpaper
+bing.py
 ==============
 
-Script to download latest Bing wallpaper
+Script to download current background from bing.com to be used as a wallpaper.
 
 Running the script
 ==========
