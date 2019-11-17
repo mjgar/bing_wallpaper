@@ -3,8 +3,19 @@ bing_wallpaper
 
 Script to download latest Bing wallpaper
 
+Creating an environment to run the script
+==========
+
+Conda:
+```
+conda create -n bing -c defaults -c conda-forge python=3.7 requests beautifulsoup4 funcy
+```
+
+Pip:
+```
+pip install funcy requests beautifulsoup4
+```
+
 More details
 ========
-http://blippy.net/2016/12/bing-wallpaper-on-a-mac-2-0/
-
-http://blippy.net/2014/11/bing-wallpaper-on-a-mac/
+_tbd_
