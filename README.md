@@ -1,7 +1,7 @@
 bing.py
 ==============
 
-Script to download current background from [bing.com](bing.com) to be used as a wallpaper.
+Script to download current background from [https://bing.com](bing.com) to be used as a wallpaper.
 
 Running the script
 ==========
