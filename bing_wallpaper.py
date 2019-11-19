@@ -30,7 +30,7 @@ def main(dest: str):
         log.info(f"Connecting to {bing_url}")
         r = requests.get(bing_url)
         if not r.ok:
-            raise f"{r.reason}"
+            raise RuntimeError(f"{r.reason}")
     except:
         log.error(f"Could not get data from {bing_url}. Exiting.")
         return
