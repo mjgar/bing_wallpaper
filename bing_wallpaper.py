@@ -1,8 +1,9 @@
+"""Bing wallpaper downloader."""
 import argparse
 import datetime
 import hashlib
 import logging
-import os
+import pathlib
 import re
 import shutil
 
@@ -10,90 +11,71 @@ import bs4
 import funcy
 import requests
 
+logging.basicConfig(
+    level=logging.INFO, format="[%(asctime)s] - %(levelname)s - %(message)s"
+)
 
-logging.basicConfig(level=logging.INFO,
-                    format='[%(asctime)s] - %(levelname)s - %(message)s')
-log = logging.getLogger()
+_BING_URL = "https://bing.com"
+LOG = logging.getLogger()
 
 
-@funcy.retry(3, timeout=lambda a: 2 ** a)
-def main(dest: str):
-    """
-    @param: dest Destination for downloaded image
-    Find the URL of today's image and download it we don't have it.
-    Destination filename will be YYYY-mm-dd_{md5dum}.jpg
-    """
-    bing_url = 'https://bing.com'
-    archive_dir = os.path.join(dest, 'Archive')
-
+@funcy.retry(tries=3, errors=requests.RequestException, timeout=lambda a: 2**a)
+def download_wallpaper(
+    destination_directory: pathlib.Path, archive_directory: pathlib.Path
+) -> None:
+    """Download today's Bing wallpaper to a directory as needed."""
+    LOG.info(f"Connecting to {_BING_URL}")
+    r = requests.get(_BING_URL, timeout=10)
     try:
-        log.info(f"Connecting to {bing_url}")
-        r = requests.get(bing_url)
-        if not r.ok:
-            raise RuntimeError(f"{r.reason}")
-    except:
-        log.error(f"Could not get data from {bing_url}. Exiting.")
+        r.raise_for_status()
+    except requests.RequestException:
+        LOG.exception(f"Failed to connect to {_BING_URL}")
         return
-
-    img_cont = bs4.BeautifulSoup(
-        r.content, 'html.parser').find_all('div', class_='img_cont')
-    if not img_cont:
-        log.error(f"Could not parse html from {bing_url}. Exiting.")
+    img_container = bs4.BeautifulSoup(r.content, "html.parser").find_all(
+        "div", class_="img_cont"
+    )
+    if not img_container:
+        raise RuntimeError(f"Failed to parse html from {_BING_URL}.")
+    url_for_today = _BING_URL + re.search(r"\((.+)\)", str(img_container)).group(1)
+    LOG.info(f"Found today's image URL {url_for_today}")
+    md5 = hashlib.md5(url_for_today.encode("utf-8")).hexdigest()
+    file_name = destination_directory.joinpath(
+        f"{datetime.date.today().isoformat()}_{md5}.jpg"
+    )
+    LOG.info(f"Hash for today's image URL {md5}")
+    if file_name.is_file():
+        LOG.info(f"Found {file_name} in {destination_directory}. No-op.")
         return
-    url = bing_url + re.search(r'\((.+)\)', str(img_cont)).group(1)
-    log.info(f"Found image url in html: {url}")
-    md5sum = hashlib.md5(url.encode('utf-8')).hexdigest()
-    log.info(f"Hash of image url: {md5sum}")
-
-    # Stop if we have this checksum in dest
-    existing_files = os.listdir(dest)
-    log.debug(f"Existing files in {dest} are {existing_files}")
-    if any(md5sum in f for f in existing_files):
-        log.info(f"Found {md5sum} hash in {dest}. Exiting.")
-        return
-
-    # Build the filename
-    image_file = f"{datetime.date.today().isoformat()}_{md5sum}.jpg"
-    image_fullname = os.path.join(dest, image_file)
-
-    # Download the file
     try:
-        log.info(f"Downloading {url} to {image_fullname}")
-        r = requests.get(url, allow_redirects=True)
-        if r.ok:
-            with open(image_fullname, 'wb') as f:
-                log.debug(f"Writing to disk as {image_fullname}")
+        LOG.info(f"Downloading {url_for_today} to {file_name}")
+        with requests.get(url_for_today, stream=True) as r:
+            r.raise_for_status()
+            with open(file_name, "w+b") as f:
                 f.write(r.content)
-        else:
-            log.error(f"Could not download {url}, reason: {r.reason}")
-    except:
-        log.error(f"Could not download {url} to {image_fullname}")
+    except requests.RequestException:
+        LOG.exception(f"Failed to download {url_for_today}.")
         return
-
-    # Archive the existing jpg files if archive directory exists
-    if os.path.isdir(archive_dir):
-        for f in existing_files:
-            if f.endswith('.jpg'):
-                log.info(f"Archiving {f} to {archive_dir}")
-                shutil.move(os.path.join(dest, f), archive_dir)
-
-    # Done
-    log.info('Done')
+    if archive_directory.is_dir():
+        for f in destination_directory.glob("*.jpg"):
+            if f == file_name:
+                continue
+            LOG.info(f"Archiving {f} to {archive_directory}")
+            shutil.move(f, archive_directory)
+    LOG.info("Done!")
 
 
-if __name__ == '__main__':
-    """ Initialize a (very basic) argument parser with destination directory
-        and download the image, archiving any existing .jpgs to {dest}/Archive
-    """
+def _parse_args() -> argparse.Namespace:
+    """Parse the script's arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--dest',
-        help='destination directory',
-        type=str,
-        required=True
+        "--dest", help="Destination directory", type=pathlib.Path, required=True
     )
-    args = parser.parse_args()
-    if not os.path.isdir(args.dest):
-        log.error(f"{args.dest} is not a directory. Exiting.")
-    else:
-        main(args.dest)
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = _parse_args()
+    if not args.dest.is_dir():
+        LOG.error(f"{args.dest} is not a directory.")
+        exit(1)
+    download_wallpaper(args.dest, args.dest.joinpath("Archive"))
