@@ -22,7 +22,7 @@ LOG = logging.getLogger()
 @funcy.retry(tries=3, errors=requests.RequestException, timeout=lambda a: 2**a)
 def download_wallpaper(
     destination_directory: pathlib.Path, archive_directory: pathlib.Path
-):
+) -> None:
     """Download today's Bing wallpaper to a directory as needed."""
     LOG.info(f"Connecting to {_BING_URL}")
     r = requests.get(_BING_URL, timeout=10)
