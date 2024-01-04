@@ -37,6 +37,7 @@ def download_wallpaper(
     if not img_container.get("content"):
         raise RuntimeError(f"Failed to parse html from {_BING_URL}.")
     url_for_today = img_container["content"]
+
     LOG.info(f"Found today's image URL {url_for_today}")
     md5 = hashlib.md5(url_for_today.encode("utf-8")).hexdigest()
     file_name = destination_directory.joinpath(
