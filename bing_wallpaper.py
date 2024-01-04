@@ -31,12 +31,12 @@ def download_wallpaper(
     except requests.RequestException:
         LOG.exception(f"Failed to connect to {_BING_URL}")
         return
-    img_container = bs4.BeautifulSoup(r.content, "html.parser").find_all(
-        "div", class_="img_cont"
+    img_container = bs4.BeautifulSoup(r.content, "html.parser").find(
+        "meta", property="og:image"
     )
-    if not img_container:
+    if not img_container.get("content"):
         raise RuntimeError(f"Failed to parse html from {_BING_URL}.")
-    url_for_today = _BING_URL + re.search(r"\((.+)\)", str(img_container)).group(1)
+    url_for_today = img_container["content"]
     LOG.info(f"Found today's image URL {url_for_today}")
     md5 = hashlib.md5(url_for_today.encode("utf-8")).hexdigest()
     file_name = destination_directory.joinpath(
